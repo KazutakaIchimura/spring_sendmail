@@ -70,6 +70,9 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler((req, res, authentication) -> {
                     res.setStatus(HttpServletResponse.SC_OK);
                     res.setContentType("application/json;charset=UTF-8");
