@@ -27,15 +27,20 @@ public class UserService {
     private final UserOfficeRepository userOfficeRepository;
 
     @Transactional(readOnly = true)
-    public List<UserResponse> listUsers() {
-        return userRepository.findByIsActiveTrue().stream()
-                .map(UserResponse::from)
-                .toList();
+    public List<UserResponse> listUsers(boolean includeInactive) {
+        List<User> users = includeInactive
+                ? userRepository.findAll()
+                : userRepository.findByIsActiveTrue();
+        return users.stream().map(UserResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUser(Long id) {
-        return UserResponse.from(findUserById(id));
+        User user = findUserById(id);
+        List<OfficeResponse> offices = userOfficeRepository.findByUserId(id).stream()
+                .map(uo -> OfficeResponse.from(uo.getOffice()))
+                .toList();
+        return UserResponse.fromWithOffices(user, offices);
     }
 
     @Transactional
@@ -63,6 +68,13 @@ public class UserService {
         User user = findUserById(id);
         user.setIsActive(false);
         userRepository.save(user);
+    }
+
+    @Transactional
+    public UserResponse activateUser(Long id) {
+        User user = findUserById(id);
+        user.setIsActive(true);
+        return UserResponse.from(userRepository.save(user));
     }
 
     @Transactional(readOnly = true)

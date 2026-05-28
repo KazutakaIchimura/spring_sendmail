@@ -1,8 +1,10 @@
 package com.example.sendmail.dto.response;
 
+import com.example.sendmail.config.YearMonthSerializer;
 import com.example.sendmail.domain.entity.MailSend;
 import com.example.sendmail.domain.enums.SendStatus;
 import com.example.sendmail.domain.enums.SendType;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -18,7 +20,10 @@ public class MailSendResponse {
     private Long officeId;
     private String officeName;
     private SendType sendType;
+
+    @JsonSerialize(using = YearMonthSerializer.class)
     private LocalDate sendMonth;
+
     private SendStatus status;
     private boolean isOverdue;
     private Long batchId;

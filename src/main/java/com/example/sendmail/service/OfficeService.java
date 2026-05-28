@@ -18,10 +18,11 @@ public class OfficeService {
     private final OfficeRepository officeRepository;
 
     @Transactional(readOnly = true)
-    public List<OfficeResponse> listOffices() {
-        return officeRepository.findByIsActiveTrue().stream()
-                .map(OfficeResponse::from)
-                .toList();
+    public List<OfficeResponse> listOffices(boolean includeInactive) {
+        List<Office> offices = includeInactive
+                ? officeRepository.findAll()
+                : officeRepository.findByIsActiveTrue();
+        return offices.stream().map(OfficeResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
@@ -54,6 +55,13 @@ public class OfficeService {
         Office office = findOfficeById(id);
         office.setIsActive(false);
         officeRepository.save(office);
+    }
+
+    @Transactional
+    public OfficeResponse activateOffice(Long id) {
+        Office office = findOfficeById(id);
+        office.setIsActive(true);
+        return OfficeResponse.from(officeRepository.save(office));
     }
 
     private Office findOfficeById(Long id) {

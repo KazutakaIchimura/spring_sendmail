@@ -21,8 +21,9 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<UserResponse> listUsers() {
-        return userService.listUsers();
+    public List<UserResponse> listUsers(
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return userService.listUsers(includeInactive);
     }
 
     @PostMapping
@@ -46,6 +47,11 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deactivateUser(@PathVariable Long id) {
         userService.deactivateUser(id);
+    }
+
+    @PatchMapping("/{id}/activate")
+    public UserResponse activateUser(@PathVariable Long id) {
+        return userService.activateUser(id);
     }
 
     @GetMapping("/{userId}/offices")

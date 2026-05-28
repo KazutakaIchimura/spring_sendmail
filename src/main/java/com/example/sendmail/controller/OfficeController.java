@@ -18,8 +18,9 @@ public class OfficeController {
     private final OfficeService officeService;
 
     @GetMapping
-    public List<OfficeResponse> listOffices() {
-        return officeService.listOffices();
+    public List<OfficeResponse> listOffices(
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return officeService.listOffices(includeInactive);
     }
 
     @PostMapping
@@ -43,5 +44,10 @@ public class OfficeController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deactivateOffice(@PathVariable Long id) {
         officeService.deactivateOffice(id);
+    }
+
+    @PatchMapping("/{id}/activate")
+    public OfficeResponse activateOffice(@PathVariable Long id) {
+        return officeService.activateOffice(id);
     }
 }
