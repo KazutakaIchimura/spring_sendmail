@@ -6,23 +6,60 @@ import com.example.sendmail.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import javax.sql.DataSource;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DatabaseMigrator implements CommandLineRunner {
 
+    private final DataSource dataSource;
+    private final JdbcTemplate jdbcTemplate;
     private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JdbcTemplate jdbcTemplate;
+
+    private static final int MAX_RETRIES = 10;
+    private static final long RETRY_INTERVAL_MS = 3000;
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws InterruptedException {
+        waitForDatabase();
+        initSchema();
         insertAdminIfNotExists();
         addBuildingColumnIfNotExists();
+    }
+
+    private void waitForDatabase() throws InterruptedException {
+        for (int i = 1; i <= MAX_RETRIES; i++) {
+            try {
+                jdbcTemplate.queryForObject("SELECT 1", Integer.class);
+                log.info("Migration: database connection established");
+                return;
+            } catch (Exception e) {
+                log.warn("Migration: DB not ready (attempt {}/{}), retrying in {}ms...",
+                        i, MAX_RETRIES, RETRY_INTERVAL_MS);
+                Thread.sleep(RETRY_INTERVAL_MS);
+            }
+        }
+        log.error("Migration: could not connect to database after {} retries", MAX_RETRIES);
+    }
+
+    private void initSchema() {
+        try {
+            ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+            populator.addScript(new ClassPathResource("schema-mysql.sql"));
+            populator.setContinueOnError(true);
+            populator.execute(dataSource);
+            log.info("Migration: schema initialized");
+        } catch (Exception e) {
+            log.warn("Migration: schema init skipped: {}", e.getMessage());
+        }
     }
 
     private void insertAdminIfNotExists() {
@@ -37,6 +74,8 @@ public class DatabaseMigrator implements CommandLineRunner {
                 admin.setForcePasswordChange(true);
                 staffRepository.save(admin);
                 log.info("Migration: initial admin user created");
+            } else {
+                log.info("Migration: admin user already exists");
             }
         } catch (Exception e) {
             log.warn("Migration: admin user creation skipped: {}", e.getMessage());
