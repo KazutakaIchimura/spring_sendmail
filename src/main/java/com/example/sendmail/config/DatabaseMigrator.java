@@ -24,30 +24,35 @@ public class DatabaseMigrator implements CommandLineRunner {
     private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private static final int MAX_RETRIES = 10;
-    private static final long RETRY_INTERVAL_MS = 3000;
-
     @Override
-    public void run(String... args) throws InterruptedException {
-        waitForDatabase();
-        initSchema();
-        insertAdminIfNotExists();
-        addBuildingColumnIfNotExists();
+    public void run(String... args) {
+        Thread thread = new Thread(() -> {
+            try {
+                waitForDatabase();
+                initSchema();
+                insertAdminIfNotExists();
+                addBuildingColumnIfNotExists();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.warn("Migration thread interrupted");
+            }
+        }, "db-migrator");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void waitForDatabase() throws InterruptedException {
-        for (int i = 1; i <= MAX_RETRIES; i++) {
+        for (int i = 1; i <= 30; i++) {
             try {
                 jdbcTemplate.queryForObject("SELECT 1", Integer.class);
-                log.info("Migration: database connection established");
+                log.info("Migration: database connection established (attempt {})", i);
                 return;
             } catch (Exception e) {
-                log.warn("Migration: DB not ready (attempt {}/{}), retrying in {}ms...",
-                        i, MAX_RETRIES, RETRY_INTERVAL_MS);
-                Thread.sleep(RETRY_INTERVAL_MS);
+                log.warn("Migration: DB not ready (attempt {}/30), retrying in 5s...", i);
+                Thread.sleep(5000);
             }
         }
-        log.error("Migration: could not connect to database after {} retries", MAX_RETRIES);
+        log.error("Migration: could not connect to database after 30 retries");
     }
 
     private void initSchema() {
