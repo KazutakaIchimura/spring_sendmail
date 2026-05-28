@@ -1,12 +1,12 @@
 package com.example.sendmail.controller;
 
+import com.example.sendmail.dto.request.ChangePasswordRequest;
 import com.example.sendmail.dto.response.StaffResponse;
 import com.example.sendmail.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,5 +21,10 @@ public class AuthController {
     @GetMapping("/me")
     public StaffResponse me(Authentication auth) {
         return StaffResponse.from(authService.getCurrentStaff(auth.getName()));
+    }
+
+    @PostMapping("/password/change")
+    public void changePassword(@Valid @RequestBody ChangePasswordRequest req, Authentication auth) {
+        authService.changePassword(auth.getName(), req.newPassword());
     }
 }
