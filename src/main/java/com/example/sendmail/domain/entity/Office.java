@@ -26,6 +26,9 @@ public class Office {
     @Column(name = "postal_code", length = 8)
     private String postalCode;
 
+    @Column(length = 200)
+    private String building;
+
     @Column(length = 500)
     private String address;
 

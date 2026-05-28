@@ -16,6 +16,9 @@ public class CreateOfficeRequest {
     @Size(max = 8)
     private String postalCode;
 
+    @Size(max = 200)
+    private String building;
+
     @Size(max = 500)
     private String address;
 

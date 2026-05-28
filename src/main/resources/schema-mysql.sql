@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS offices (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(200) NOT NULL,
     postal_code VARCHAR(8),
+    building    VARCHAR(200),
     address     VARCHAR(500),
     phone       VARCHAR(20),
     is_active   BOOLEAN   DEFAULT TRUE,

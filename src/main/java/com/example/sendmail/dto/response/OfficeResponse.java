@@ -12,6 +12,7 @@ public class OfficeResponse {
     private Long id;
     private String name;
     private String postalCode;
+    private String building;
     private String address;
     private String phone;
     private Boolean isActive;
@@ -23,6 +24,7 @@ public class OfficeResponse {
                 .id(office.getId())
                 .name(office.getName())
                 .postalCode(office.getPostalCode())
+                .building(office.getBuilding())
                 .address(office.getAddress())
                 .phone(office.getPhone())
                 .isActive(office.getIsActive())
