@@ -51,14 +51,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/sign-in").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/api/staffs/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )
             .formLogin(form -> form
-                .loginProcessingUrl("/api/auth/login")
+                .loginProcessingUrl("/api/auth/sign-in")
                 .successHandler((req, res, authentication) -> {
                     res.setStatus(HttpServletResponse.SC_OK);
                     res.setContentType("application/json;charset=UTF-8");
