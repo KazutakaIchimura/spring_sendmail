@@ -34,6 +34,12 @@ public class StaffController {
         return staffService.updateStaff(id, req);
     }
 
+    @PatchMapping("/{id}/activate")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void activateStaff(@PathVariable Long id) {
+        staffService.activateStaff(id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deactivateStaff(@PathVariable Long id) {

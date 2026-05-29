@@ -60,6 +60,13 @@ public class StaffService {
     }
 
     @Transactional
+    public void activateStaff(Long id) {
+        Staff staff = findStaffById(id);
+        staff.setIsActive(true);
+        staffRepository.save(staff);
+    }
+
+    @Transactional
     public void deactivateStaff(Long id) {
         Staff staff = findStaffById(id);
         staff.setIsActive(false);
