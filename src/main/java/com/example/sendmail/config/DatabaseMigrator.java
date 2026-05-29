@@ -33,6 +33,7 @@ public class DatabaseMigrator implements CommandLineRunner {
                 waitForDatabase();
                 initSchema();
                 insertRolesIfNotExists();
+                migrateStaffsRoleColumnIfNeeded();
                 insertAdminIfNotExists();
                 addBuildingColumnIfNotExists();
             } catch (InterruptedException e) {
@@ -76,6 +77,26 @@ public class DatabaseMigrator implements CommandLineRunner {
             log.info("Migration: roles initialized");
         } catch (Exception e) {
             log.warn("Migration: roles init skipped: {}", e.getMessage());
+        }
+    }
+
+    private void migrateStaffsRoleColumnIfNeeded() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'staffs' AND COLUMN_NAME = 'role_id'",
+                    Integer.class);
+            if (count == null || count == 0) {
+                jdbcTemplate.execute("ALTER TABLE staffs ADD COLUMN role_id BIGINT NULL");
+                jdbcTemplate.execute(
+                        "UPDATE staffs s JOIN roles r ON r.name = s.role SET s.role_id = r.id");
+                jdbcTemplate.execute("ALTER TABLE staffs MODIFY COLUMN role_id BIGINT NOT NULL");
+                jdbcTemplate.execute(
+                        "ALTER TABLE staffs ADD CONSTRAINT fk_staffs_role FOREIGN KEY (role_id) REFERENCES roles(id)");
+                log.info("Migration: staffs.role_id column added and populated from role ENUM");
+            }
+        } catch (Exception e) {
+            log.warn("Migration: staffs role column migration skipped: {}", e.getMessage());
         }
     }
 
