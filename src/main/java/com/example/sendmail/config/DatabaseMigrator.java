@@ -1,7 +1,8 @@
 package com.example.sendmail.config;
 
+import com.example.sendmail.domain.entity.Role;
 import com.example.sendmail.domain.entity.Staff;
-import com.example.sendmail.domain.enums.Role;
+import com.example.sendmail.repository.RoleRepository;
 import com.example.sendmail.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class DatabaseMigrator implements CommandLineRunner {
     private final DataSource dataSource;
     private final JdbcTemplate jdbcTemplate;
     private final StaffRepository staffRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -30,6 +32,7 @@ public class DatabaseMigrator implements CommandLineRunner {
             try {
                 waitForDatabase();
                 initSchema();
+                insertRolesIfNotExists();
                 insertAdminIfNotExists();
                 addBuildingColumnIfNotExists();
             } catch (InterruptedException e) {
@@ -67,14 +70,25 @@ public class DatabaseMigrator implements CommandLineRunner {
         }
     }
 
+    private void insertRolesIfNotExists() {
+        try {
+            jdbcTemplate.execute("INSERT IGNORE INTO roles (name) VALUES ('ADMIN'), ('STAFF')");
+            log.info("Migration: roles initialized");
+        } catch (Exception e) {
+            log.warn("Migration: roles init skipped: {}", e.getMessage());
+        }
+    }
+
     private void insertAdminIfNotExists() {
         try {
             if (staffRepository.findByEmail("admin@example.com").isEmpty()) {
+                Role adminRole = roleRepository.findByName("ADMIN")
+                        .orElseThrow(() -> new RuntimeException("ADMIN role not found"));
                 Staff admin = new Staff();
                 admin.setName("管理者");
                 admin.setEmail("admin@example.com");
                 admin.setPasswordHash(passwordEncoder.encode("changeme"));
-                admin.setRole(Role.ADMIN);
+                admin.setRole(adminRole);
                 admin.setIsActive(true);
                 admin.setForcePasswordChange(true);
                 staffRepository.save(admin);

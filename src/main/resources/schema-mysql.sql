@@ -1,13 +1,19 @@
+CREATE TABLE IF NOT EXISTS roles (
+    id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS staffs (
     id                    BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name                  VARCHAR(100)        NOT NULL,
-    email                 VARCHAR(255)        NOT NULL UNIQUE,
-    password_hash         VARCHAR(255)        NOT NULL,
-    role                  ENUM('ADMIN','STAFF') NOT NULL,
-    is_active             BOOLEAN             DEFAULT TRUE,
-    force_password_change BOOLEAN             DEFAULT TRUE,
-    created_at            TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at            TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    name                  VARCHAR(100) NOT NULL,
+    email                 VARCHAR(255) NOT NULL UNIQUE,
+    password_hash         VARCHAR(255) NOT NULL,
+    role_id               BIGINT       NOT NULL,
+    is_active             BOOLEAN      DEFAULT TRUE,
+    force_password_change BOOLEAN      DEFAULT TRUE,
+    created_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
 CREATE TABLE IF NOT EXISTS users (

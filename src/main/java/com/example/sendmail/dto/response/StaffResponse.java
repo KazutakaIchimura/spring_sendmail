@@ -1,7 +1,6 @@
 package com.example.sendmail.dto.response;
 
 import com.example.sendmail.domain.entity.Staff;
-import com.example.sendmail.domain.enums.Role;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,7 +12,8 @@ public class StaffResponse {
     private Long id;
     private String name;
     private String email;
-    private Role role;
+    private Long roleId;
+    private String role;
     private Boolean isActive;
     private Boolean forcePasswordChange;
     private LocalDateTime createdAt;
@@ -23,7 +23,8 @@ public class StaffResponse {
                 .id(staff.getId())
                 .name(staff.getName())
                 .email(staff.getEmail())
-                .role(staff.getRole())
+                .roleId(staff.getRole().getId())
+                .role(staff.getRole().getName())
                 .isActive(staff.getIsActive())
                 .forcePasswordChange(staff.getForcePasswordChange())
                 .createdAt(staff.getCreatedAt())

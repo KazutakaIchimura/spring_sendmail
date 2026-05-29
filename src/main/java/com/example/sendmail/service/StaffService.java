@@ -1,10 +1,12 @@
 package com.example.sendmail.service;
 
+import com.example.sendmail.domain.entity.Role;
 import com.example.sendmail.domain.entity.Staff;
 import com.example.sendmail.dto.request.CreateStaffRequest;
 import com.example.sendmail.dto.response.StaffResponse;
 import com.example.sendmail.exception.DuplicateResourceException;
 import com.example.sendmail.exception.ResourceNotFoundException;
+import com.example.sendmail.repository.RoleRepository;
 import com.example.sendmail.repository.StaffRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +20,7 @@ import java.util.List;
 public class StaffService {
 
     private final StaffRepository staffRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -35,19 +38,21 @@ public class StaffService {
         if (req.getPassword() == null || req.getPassword().isBlank()) {
             throw new IllegalArgumentException("パスワードは必須です");
         }
+        Role role = findRoleByName(req.getRole());
         Staff staff = new Staff();
         staff.setName(req.getName());
         staff.setEmail(req.getEmail());
         staff.setPasswordHash(passwordEncoder.encode(req.getPassword()));
-        staff.setRole(req.getRole());
+        staff.setRole(role);
         return StaffResponse.from(staffRepository.save(staff));
     }
 
     @Transactional
     public StaffResponse updateStaff(Long id, CreateStaffRequest req) {
+        Role role = findRoleByName(req.getRole());
         Staff staff = findStaffById(id);
         staff.setName(req.getName());
-        staff.setRole(req.getRole());
+        staff.setRole(role);
         if (req.getPassword() != null && !req.getPassword().isBlank()) {
             staff.setPasswordHash(passwordEncoder.encode(req.getPassword()));
         }
@@ -64,5 +69,10 @@ public class StaffService {
     private Staff findStaffById(Long id) {
         return staffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("スタッフが見つかりません: " + id));
+    }
+
+    private Role findRoleByName(String name) {
+        return roleRepository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("ロールが見つかりません: " + name));
     }
 }
