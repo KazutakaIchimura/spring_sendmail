@@ -82,11 +82,11 @@ public class DatabaseMigrator implements CommandLineRunner {
 
     private void migrateStaffsRoleColumnIfNeeded() {
         try {
-            Integer count = jdbcTemplate.queryForObject(
+            Integer roleIdCount = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS " +
                     "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'staffs' AND COLUMN_NAME = 'role_id'",
                     Integer.class);
-            if (count == null || count == 0) {
+            if (roleIdCount == null || roleIdCount == 0) {
                 jdbcTemplate.execute("ALTER TABLE staffs ADD COLUMN role_id BIGINT NULL");
                 jdbcTemplate.execute(
                         "UPDATE staffs s JOIN roles r ON r.name = s.role SET s.role_id = r.id");
@@ -94,6 +94,14 @@ public class DatabaseMigrator implements CommandLineRunner {
                 jdbcTemplate.execute(
                         "ALTER TABLE staffs ADD CONSTRAINT fk_staffs_role FOREIGN KEY (role_id) REFERENCES roles(id)");
                 log.info("Migration: staffs.role_id column added and populated from role ENUM");
+            }
+            Integer oldRoleCount = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS " +
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'staffs' AND COLUMN_NAME = 'role'",
+                    Integer.class);
+            if (oldRoleCount != null && oldRoleCount > 0) {
+                jdbcTemplate.execute("ALTER TABLE staffs DROP COLUMN role");
+                log.info("Migration: staffs.role (ENUM) column dropped");
             }
         } catch (Exception e) {
             log.warn("Migration: staffs role column migration skipped: {}", e.getMessage());
