@@ -24,10 +24,11 @@ public class StaffService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public List<StaffResponse> listStaffs() {
-        return staffRepository.findByIsActiveTrue().stream()
-                .map(StaffResponse::from)
-                .toList();
+    public List<StaffResponse> listStaffs(boolean includeInactive) {
+        List<Staff> staffs = includeInactive
+                ? staffRepository.findAll()
+                : staffRepository.findByIsActiveTrue();
+        return staffs.stream().map(StaffResponse::from).toList();
     }
 
     @Transactional

@@ -18,8 +18,9 @@ public class StaffController {
     private final StaffService staffService;
 
     @GetMapping
-    public List<StaffResponse> listStaffs() {
-        return staffService.listStaffs();
+    public List<StaffResponse> listStaffs(
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return staffService.listStaffs(includeInactive);
     }
 
     @PostMapping
